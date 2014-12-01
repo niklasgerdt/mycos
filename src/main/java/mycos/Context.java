@@ -24,10 +24,13 @@
 
 package mycos;
 
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.NavigableSet;
+import java.util.concurrent.ConcurrentSkipListSet;
 
-import org.zeromq.*;
+import org.zeromq.ZMQ;
+import org.zeromq.ZMQException;
+
+import zmq.ZError;
 
 final class Context {
     private static final String CONTEXT = "mycos.workers";
@@ -49,23 +52,26 @@ final class Context {
 
     Socket clientSocket(final String address) {
 	try {
-	    final org.zeromq.ZMQ.Socket zmqsocket = zmqctx.socket(ZMQ.REQ);
-	    zmqsocket.connect(address);
+	    final ZMQ.Socket zmqsocket = zmqctx.socket(ZMQ.REQ);
 	    final Socket socket = new Socket(zmqsocket);
+	    zmqsocket.connect(address);
 	    sockets.add(socket);
 	    return socket;
-	} catch (RuntimeException e) {
-	    // ZMQ throws various RunTimeExceptions
+	} catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
 	    throw new MycosNetworkException("Can't create valid client socket", e);
 	}
     }
 
     Socket serverSocket(final String address) {
-	final org.zeromq.ZMQ.Socket zmqsocket = zmqctx.socket(ZMQ.REP);
-	zmqsocket.bind(address);
-	final Socket socket = new Socket(zmqsocket);
-	sockets.add(socket);
-	return socket;
+	try {
+	    final ZMQ.Socket zmqsocket = zmqctx.socket(ZMQ.REP);
+	    zmqsocket.bind(address);
+	    final Socket socket = new Socket(zmqsocket);
+	    sockets.add(socket);
+	    return socket;
+	} catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
+	    throw new MycosNetworkException("Can't create valid server socket", e);
+	}
     }
 
     // TODO do we need concurrency control?
