@@ -24,6 +24,29 @@
 
 package mycos;
 
-public interface Server {
+import java.lang.reflect.*;
 
+import com.google.gson.*;
+import com.google.gson.reflect.*;
+
+final class GsonWrapper {
+    private final Gson gson = new Gson();
+
+    String toJson(Object object) {
+	try {
+	    return gson.toJson(object);
+	} catch (JsonParseException e) {
+	    throw new MycosParseException("failed to parse object to json", e);
+	}
+    }
+
+    <V> V fromJson(String json) {
+	try {
+	    Type type = new TypeToken<V>() {
+	    }.getType();
+	    return gson.fromJson(json, type);
+	} catch (JsonParseException e) {
+	    throw new MycosParseException("failed to parse json to object", e);
+	}
+    }
 }

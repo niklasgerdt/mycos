@@ -24,6 +24,44 @@
 
 package mycos;
 
-public interface Server {
+import java.util.*;
+import java.util.concurrent.*;
 
+/**
+ * This class provides a base implementation of {@link Wait}, with methods to
+ * see if the computation is complete and retrieve the result of the
+ * computation. The result can only be retrieved when the computation has
+ * completed; the {@code get} methods will block if the computation has not yet
+ * completed.
+ *
+ * @param <V>
+ *            The result type returned by {@code get} methods wrapped in
+ *            {@link Optional}
+ */
+public class ReplyWaiter<V> implements Wait<V> {
+    private final Future<Optional<V>> future;
+
+    ReplyWaiter(final Future<Optional<V>> future) {
+	this.future = future;
+    }
+
+    /**
+     * @throws MycosNetworkException
+     *             {@inheritDoc}
+     */
+    public Optional<V> get() {
+	try {
+	    return future.get();
+	} catch (InterruptedException | ExecutionException e) {
+	    throw new MycosNetworkException("This should never happen, since we are not throwing checked exceptions", e);
+	}
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDone() {
+	return future.isDone();
+    }
 }

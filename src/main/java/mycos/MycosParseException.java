@@ -24,6 +24,31 @@
 
 package mycos;
 
-public interface Server {
+/**
+ * This exception is raised if there is a serious issue that occurs during
+ * object parsing.
+ * <p>
+ * This class is only thin wrapper around more specific exception. The main
+ * usages for this class is for Gson parsing exceptions.
+ * <p>
+ * This exception is a {@link RuntimeException} because often clients do not
+ * know how to recover from a parsing error. So it is often the case that you
+ * want to blow up if there is a parsing error.
+ * </p>
+ */
+public class MycosParseException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
+
+    MycosParseException(String msg) {
+	super(msg);
+    }
+
+    MycosParseException(String msg, Throwable cause) {
+	super(msg, cause);
+    }
+
+    MycosParseException(Throwable cause) {
+	super(cause);
+    }
 
 }

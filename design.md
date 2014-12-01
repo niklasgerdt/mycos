@@ -7,9 +7,12 @@ Mycos is trying to be dead simple and easy to use networking library. It provide
 Clients and Servers are builded via SocketBuilder class. SocketBuilder class can be created only via  static factory method BuildSocket(). Static factory methods have names so they makes the creation of clients and sockets read nicer. More about static factory methods and their benefits can be found in [1]. Of course it is possible to create clients and servers by multiple different mechanisms.  
 
 ###About exceptions
-Mycos doesn't throw exceptions. Return values are Java's Optionals (or booleans) where empty return value (or false) means that something went wrong. Error conditions are logged, but not passed to user. We could also use some other structure than Optionals to capture the information about the exceptions, but chose not, because there isn't probably lot to do for the error condition at runtime. All this puts some pressure on decent logging, because users of the API get specific information about the error only via logs.
+Mycos does throw one exception type, namely MycosNetworkException. This class wraps more specific exception type that is either exception  from ZeroMQ or Gson Json parser. ZeroMq does not document RuntimeExceptions it can throw. One has to go down the call hierarchy to track possible exception types. It is possible that some exception types can leak to user from ZeroMQ, because of former.
 
-###Later
-Later wraps Java's Future and converts possible exceptions to Mycos exceptions. It also hides away thread cancelling and offers only limited view of Java Future. Cancelling is omitted, because issues related to timeouts should be handled when creating sockets.
+###About Optionals
+Return values are Java's Optional<T> where empty return value is possible.
+
+###Wait
+Wait wraps Java's Future and converts possible exceptions to Mycos exceptions. It also hides away thread cancelling and offers only limited view of Java Future. Cancelling is omitted, because issues related to timeouts should be handled with sockets.
 
 [1] Effective Java 2. edition by Joshua Bloch.

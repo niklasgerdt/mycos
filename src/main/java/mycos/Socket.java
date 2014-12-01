@@ -24,6 +24,42 @@
 
 package mycos;
 
-public interface Server {
+import java.util.*;
 
+import org.zeromq.*;
+
+class Socket {
+    private final ZMQ.Socket zmqsocket;
+
+    Socket(ZMQ.Socket socket) {
+	this.zmqsocket = socket;
+    }
+
+    void send(String data) {
+	try {
+	    zmqsocket.send(data);
+	} catch (ZMQException e) {
+	    throw new MycosNetworkException("Sending failed", e);
+	}
+    }
+
+    Optional<String> receive() {
+	try {
+	    String rec = zmqsocket.recvStr();
+	    return returnOptionalReply(rec);
+	} catch (ZMQException e) {
+	    throw new MycosNetworkException("Receiving failed", e);
+	}
+    }
+
+    void release() {
+	zmqsocket.close();
+    }
+
+    private Optional<String> returnOptionalReply(String rec) {
+	if (Objects.isNull(rec))
+	    return Optional.empty();
+	else
+	    return Optional.of(rec);
+    }
 }

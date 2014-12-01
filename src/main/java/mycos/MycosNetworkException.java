@@ -24,6 +24,31 @@
 
 package mycos;
 
-public interface Server {
+/**
+ * This exception is raised if there is a serious issue that occurs during
+ * networking or object parsing.
+ * <p>
+ * This class is only thin wrapper around more specific exception. One of the
+ * main usages for this class is for the ZeroMQ and/or networking infrastructure
+ * exceptions. Other main usage is for Gson parsing exceptions.
+ * <p>
+ * This exception is a {@link RuntimeException} because often clients do not
+ * know how to recover from a network or parsing error. So it is often the case
+ * that you want to blow up if there is a networking or parsing error.
+ * </p>
+ */
+public class MycosNetworkException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
+    MycosNetworkException(String msg) {
+	super(msg);
+    }
+
+    MycosNetworkException(String msg, Throwable cause) {
+	super(msg, cause);
+    }
+
+    MycosNetworkException(Throwable cause) {
+	super(cause);
+    }
 }

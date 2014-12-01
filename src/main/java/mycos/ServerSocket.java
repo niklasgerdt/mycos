@@ -24,6 +24,26 @@
 
 package mycos;
 
-public interface Server {
+import java.util.concurrent.*;
+
+import com.google.gson.*;
+
+final class ServerSocket implements Server, ReleasableSocket {
+    // TODO how many executors and how
+    private final ExecutorService exec;
+    private final Gson gson = new Gson();
+    private final Socket sock;
+
+    ServerSocket(Socket socket) {
+	sock = socket;
+	// TODO common executor among sockets
+	exec = Executors.newCachedThreadPool();
+    }
+
+    @Override
+    public void release() {
+	// TODO Auto-generated method stub
+
+    }
 
 }

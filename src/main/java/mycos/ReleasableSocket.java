@@ -24,6 +24,7 @@
 
 package mycos;
 
-public interface Server {
+public interface ReleasableSocket {
 
+    void release();
 }
