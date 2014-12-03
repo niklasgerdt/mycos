@@ -16,16 +16,16 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package mycos;
 
-import java.util.Optional;
+import com.google.gson.Gson;
 
-public interface Server extends Socket {
+final class GraphBuilder {
+    static final SocketFactory socketFactory;
 
-    <V> Optional<V> hang();
+    static {
+	socketFactory = new SocketFactory(new NetworkContextStateManager(), new Gson());
+	// read properties files, system properties or stuff like that
+    }
 
-    <V> void reply(V v);
-
-    // <V> void onMessage(V->boolean) tms;
 }

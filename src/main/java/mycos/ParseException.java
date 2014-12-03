@@ -36,18 +36,18 @@ package mycos;
  * want to blow up if there is a parsing error.
  * </p>
  */
-public class MycosParseException extends RuntimeException {
+public class ParseException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 
-    MycosParseException(String msg) {
+    ParseException(String msg) {
 	super(msg);
     }
 
-    MycosParseException(String msg, Throwable cause) {
+    ParseException(String msg, Throwable cause) {
 	super(msg, cause);
     }
 
-    MycosParseException(Throwable cause) {
+    ParseException(Throwable cause) {
 	super(cause);
     }
 

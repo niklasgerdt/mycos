@@ -2,7 +2,6 @@ package mycos.lookandfeel;
 
 import java.util.*;
 import java.util.concurrent.*;
-
 import mycos.*;
 
 @SuppressWarnings("unused")
@@ -11,13 +10,13 @@ public class SocketCreation {
 	TestObject to = new TestObject();
 
 	// Creating new client socket
-	final Client client = Mycos.buildSocket().asClientOf("tcp://localhost:6060");
+	// final Client client = Mycos.buildSocket().asClientOf("tcp://localhost:6060");
 
 	// Creating new server socket
-	final Server server = Mycos.buildSocket().asServerAt("tcp://localhost:6060");
+	// final Server server = Mycos.buildSocket().asServerAt("tcp://localhost:6060");
 
 	// Creating new client socket with timeout
-	final Client clientWitTo = Mycos.buildSocket().withTimeOut(0).asClientOf("tcp://localhost:6060");
+	// final Client clientWitTo = Mycos.buildSocket().withTimeOut(0).asClientOf("tcp://localhost:6060");
 
 	// Sending asynchronous request
 	// Optional<Future<Optional<String>>> opt = client.<TestObject, String>

@@ -3,40 +3,50 @@
  * 
  * Copyright (c) 2014 Niklas Gerdt
  * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the
- * "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish,
- * distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to
- * the following conditions:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+ * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
  * 
- * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+ * Software.
  * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
- * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH
- * THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+ * WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 package mycos;
 
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.concurrent.*;
+import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Socket;
+import org.zeromq.ZMQException;
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 
-final class ClientSocket implements Client, ReleasableSocket {
-    private final Context context = Context.instance();
-    private final ExecutorService exec = Executors.newSingleThreadExecutor();
-    private final GsonWrapper gson = new GsonWrapper();
-    private final Socket socket;
+final class ClientSocket implements Client {
+    private final ExecutorService exec;
+    private final NetworkContextStateManager contextStateManager;
+    private final Gson gson;
+    private final ZMQ.Socket zmqsocket;
 
-    ClientSocket(Socket s) {
-	socket = s;
+    ClientSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, Gson gson) {
+	this.gson = gson;
+	exec = Executors.newSingleThreadExecutor();
+	contextStateManager = networkContextStateManager;
+	this.zmqsocket = zmqsocket;
     }
 
     /**
-     * 
      * This method does not throw, but resulting Wait can throw these exceptions.
      * 
-     * @throws MycosParseException
+     * @throws ParseException
      *             if failed to parse object
-     * @throws MycosNetworkException
+     * @throws NetworkException
      *             if network exception occurred
      */
     @Override
@@ -49,9 +59,9 @@ final class ClientSocket implements Client, ReleasableSocket {
     }
 
     /**
-     * @throws MycosParseException
+     * @throws ParseException
      *             if failed to parse object
-     * @throws MycosNetworkException
+     * @throws NetworkException
      *             if network exception occurred
      */
     @Override
@@ -61,20 +71,28 @@ final class ClientSocket implements Client, ReleasableSocket {
 
     @Override
     public void release() {
-	try {
-	    context.release(socket);
-	} catch (RuntimeException e) {
-	    throw new MycosNetworkException("Socket releasing failed", e);
-	}
+	contextStateManager.destroySocket(zmqsocket);
     }
 
     private <C, S> Optional<S> sendAndReceive(C object) {
-	String json = gson.toJson(object);
-	socket.send(json);
-	Optional<String> reply = socket.receive();
-	if (reply.isPresent())
-	    return Optional.of(gson.fromJson(reply.get()));
-	else
+	try {
+	    String json = gson.toJson(object);
+	    zmqsocket.send(json);
+	    String reply = zmqsocket.recvStr();
+	    return parseReply(reply);
+	} catch (ZMQException e) {
+	    throw new NetworkException("Network communication failed", e);
+	} catch (JsonParseException e) {
+	    throw new ParseException("Object parsing failed", e);
+	}
+    }
+
+    private <S> Optional<S> parseReply(String reply) {
+	if (Objects.isNull(reply))
 	    return Optional.empty();
+	else {
+	    Type type = new TypeToken<S>() {}.getType();
+	    return Optional.of(gson.fromJson(reply, type));
+	}
     }
 }

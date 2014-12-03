@@ -16,16 +16,27 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package mycos;
 
-import java.util.Optional;
+import org.zeromq.ZMQ.Socket;
+import com.google.gson.Gson;
 
-public interface Server extends Socket {
+final class SocketFactory {
+    private final NetworkContextStateManager contextStateManager;
+    private final Gson gson;
 
-    <V> Optional<V> hang();
+    SocketFactory(NetworkContextStateManager networkContextStateManager, Gson gson) {
+	this.gson = gson;
+	this.contextStateManager = networkContextStateManager;
+    }
 
-    <V> void reply(V v);
+    Client clientSocket(final String address) {
+	Socket zmqsocket = contextStateManager.createSocket(SocketType.CLIENT, address);
+	return new ClientSocket(contextStateManager, zmqsocket, gson);
+    }
 
-    // <V> void onMessage(V->boolean) tms;
+    Server serverSocket(final String address) {
+	Socket zmqsocket = contextStateManager.createSocket(SocketType.SERVER, address);
+	return new ServerSocket(contextStateManager, zmqsocket, gson);
+    }
 }

@@ -46,14 +46,14 @@ public class ReplyWaiter<V> implements Wait<V> {
     }
 
     /**
-     * @throws MycosNetworkException
+     * @throws NetworkException
      *             {@inheritDoc}
      */
     public Optional<V> get() {
 	try {
 	    return future.get();
 	} catch (InterruptedException | ExecutionException e) {
-	    throw new MycosNetworkException("This should never happen, since we are not throwing checked exceptions", e);
+	    throw new NetworkException("This should never happen, since we are not throwing checked exceptions", e);
 	}
     }
 

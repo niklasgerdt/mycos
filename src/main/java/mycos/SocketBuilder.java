@@ -24,14 +24,40 @@ import java.util.Objects;
  * SocketBuilder for constructing clients and servers.
  */
 public final class SocketBuilder {
-    private final Context context = Context.instance();
+    private final SocketFactory socketFactory;
+    private final CommunicationMedium communicationMedium;
 
     /**
      * Creates a SocketBuilder instance that can be used to build Socket with various configuration settings.
-     * SocketBuilder follows the builder pattern, and it is typically used by first invoking various configuration
-     * methods to set desired options, and finally calling {@link #asClientOf} or {@link #asServer}.
+     * SocketBuilder follows the immutable builder pattern, and it is typically used by first invoking various
+     * configuration methods to set desired options, and finally calling the actual builder method ({@link #asClientOf}
+     * , {@link #asServer}).
      */
-    SocketBuilder() {
+    public SocketBuilder build() {
+	return new SocketBuilder(GraphBuilder.socketFactory, CommunicationMedium.TCP);
+    }
+
+    private SocketBuilder(SocketFactory socketFactory, CommunicationMedium communicationMedium) {
+	this.socketFactory = socketFactory;
+	this.communicationMedium = communicationMedium;
+    }
+
+    /**
+     * Configures Socket to use TCP as communication medium. TCP is used by default.
+     *
+     * @return a reference to new {@code SocketBuilder} object to fulfil the immutable "Builder" pattern
+     */
+    public SocketBuilder asRemote() {
+	return new SocketBuilder(socketFactory, CommunicationMedium.TCP);
+    }
+
+    /**
+     * Configures Socket to use ICP as communication medium. TCP is used by default.
+     *
+     * @return a reference to new {@code SocketBuilder} object to fulfil the immutable "Builder" pattern
+     */
+    public SocketBuilder asLocal() {
+	return new SocketBuilder(socketFactory, CommunicationMedium.IPC);
     }
 
     /**
@@ -47,23 +73,23 @@ public final class SocketBuilder {
     /**
      * Creates socket as {@link Client} instance that is connected to the given server address. Sockets are unconnected
      * by design, so server does not have to be in place when calling this method. Subsequent calls to this method with
-     * same serverAddress will fail unless the created socket is released by {@link ReleasableSocket} method
-     * {@code release} or {@link Mycos} method {@code release}. On the other hand multiple different Clients can be
-     * built with similar configuration, if the given server address is different.
+     * same serverAddress will fail unless the created socket is released. On the other hand multiple Clients can be
+     * built with same builder by using different server address.
      * 
      * @param serverAddress
-     *            Address of the server where to send objects.
+     *            Address of the server where to send objects. For remote client the address should be in the following
+     *            format: host:port (for example "127.0.0.1:5000"). For local clients any String will do.
      * @return Client that can send objects to attached server.
-     * @throws MycosNetworkException
-     *             Socket creation can fail for various reasons. {@link MycosNetworkException} wraps actual causes.
+     * @throws NetworkException
+     *             Socket creation can fail for various reasons. {@link NetworkException} wraps actual causes.
      * @throws NullPointerException
      *             if serverAddress is null
      */
     public Client asClientOf(final String serverAddress) {
 	Objects.requireNonNull(serverAddress);
-	final Socket socket = context.clientSocket(serverAddress);
-	final Client client = new ClientSocket(socket);
-	return client;
+	// TODO validate address
+
+	return socketFactory.clientSocket(communicationMedium.prefix() + serverAddress);
     }
 
     /**
@@ -75,15 +101,62 @@ public final class SocketBuilder {
      * @param serverAddress
      *            Address of the server where {@link Client} can send objects.
      * @return Server that is binded to the given address.
-     * @throws MycosNetworkException
-     *             Socket creation can fail for various reasons. {@link MycosNetworkException} wraps actual causes.
+     * @throws NetworkException
+     *             Socket creation can fail for various reasons. {@link NetworkException} wraps actual causes.
      * @throws NullPointerException
      *             if serverAddress is null
      */
     public Server asServerAt(final String serverAddress) {
 	Objects.requireNonNull(serverAddress);
-	final Socket socket = context.serverSocket(serverAddress);
-	final Server server = new ServerSocket(socket);
-	return server;
+	// TODO validate address
+	return socketFactory.serverSocket(communicationMedium.prefix() + serverAddress);
+    }
+
+    /**
+     * @throws UnsupportedOperationException
+     *             not yet implemented
+     */
+    public Publisher asPublisherAt(final String address) {
+	throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException
+     *             not yet implemented
+     */
+    public Publisher asPublisherAtWithRouterAt(final String address, final String routerAddress) {
+	throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException
+     *             not yet implemented
+     */
+    public Subscriber asSubscriberOf(final String address) {
+	throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException
+     *             not yet implemented
+     */
+    public Publisher asSubscriberOfWithFilter(final String address, final String filter) {
+	throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException
+     *             not yet implemented
+     */
+    public Router asRouterAt(final String address) {
+	throw new UnsupportedOperationException();
+    }
+
+    /**
+     * @throws UnsupportedOperationException
+     *             not yet implemented
+     */
+    public Router asForkedRouterAt(final String address) {
+	throw new UnsupportedOperationException();
     }
 }

@@ -60,7 +60,7 @@ public interface Wait<V> {
      *
      * @return the computed result as {@code Optional<V>} or
      *         {@code Optional.empty}, if no result
-     * @throws MycosNetworkException
+     * @throws NetworkException
      *             if the current thread experienced exception
      */
     Optional<V> get();

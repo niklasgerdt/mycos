@@ -24,29 +24,31 @@
 
 package mycos;
 
-import java.lang.reflect.*;
+/**
+ * This exception is raised if there is a serious issue that occurs during
+ * networking or object parsing.
+ * <p>
+ * This class is only thin wrapper around more specific exception. One of the
+ * main usages for this class is for the ZeroMQ and/or networking infrastructure
+ * exceptions. Other main usage is for Gson parsing exceptions.
+ * <p>
+ * This exception is a {@link RuntimeException} because often clients do not
+ * know how to recover from a network or parsing error. So it is often the case
+ * that you want to blow up if there is a networking or parsing error.
+ * </p>
+ */
+public class NetworkException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
-import com.google.gson.*;
-import com.google.gson.reflect.*;
-
-final class GsonWrapper {
-    private final Gson gson = new Gson();
-
-    String toJson(Object object) {
-	try {
-	    return gson.toJson(object);
-	} catch (JsonParseException e) {
-	    throw new MycosParseException("failed to parse object to json", e);
-	}
+    NetworkException(String msg) {
+	super(msg);
     }
 
-    <V> V fromJson(String json) {
-	try {
-	    Type type = new TypeToken<V>() {
-	    }.getType();
-	    return gson.fromJson(json, type);
-	} catch (JsonParseException e) {
-	    throw new MycosParseException("failed to parse json to object", e);
-	}
+    NetworkException(String msg, Throwable cause) {
+	super(msg, cause);
+    }
+
+    NetworkException(Throwable cause) {
+	super(cause);
     }
 }
