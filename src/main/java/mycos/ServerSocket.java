@@ -30,31 +30,31 @@ final class ServerSocket implements Server {
     private final ZMQ.Socket zmqsocket;
 
     ServerSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, GsonWrapper gson) {
-	this.gson = gson;
-	this.contextStateManager = networkContextStateManager;
-	this.zmqsocket = zmqsocket;
+        this.gson = gson;
+        this.contextStateManager = networkContextStateManager;
+        this.zmqsocket = zmqsocket;
     }
 
     @Override
     public <V> Optional<V> hang() {
-	try {
-	    final String reply = zmqsocket.recvStr();
-	    return gson.fromJson(reply);
-	} catch (ZMQException e) {
-	    throw new NetworkException("Network communication failed", e);
-	} catch (JsonParseException e) {
-	    throw new ParseException("Object parsing failed", e);
-	}
+        try {
+            final String reply = zmqsocket.recvStr();
+            return gson.fromJson(reply);
+        } catch (ZMQException e) {
+            throw new NetworkException("Network communication failed", e);
+        } catch (JsonParseException e) {
+            throw new ParseException("Object parsing failed", e);
+        }
     }
 
     @Override
     public <V> void reply(V object) {
-	String json = gson.toJson(object);
-	zmqsocket.send(json);
+        String json = gson.toJson(object);
+        zmqsocket.send(json);
     }
 
     @Override
     public void release() {
-	contextStateManager.destroySocket(zmqsocket);
+        contextStateManager.destroySocket(zmqsocket);
     }
 }

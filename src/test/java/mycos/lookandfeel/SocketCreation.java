@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 import java.util.*;
 import java.util.concurrent.*;
 import org.junit.Test;
+import zmq.ZError;
 import mycos.*;
 
 @SuppressWarnings("unused")

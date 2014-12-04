@@ -30,82 +30,82 @@ final class NetworkContextStateManager {
     private boolean contextup = false;
 
     NetworkContextStateManager(final ZeroMqContextWrapper contextWrapper) {
-	zmqctx = contextWrapper;
+        zmqctx = contextWrapper;
     }
 
     synchronized Socket createSocket(final SocketType type, final String address) {
-	Socket socket = null;
-	try {
-	    if (contextDownAndNoSockets())
-		initContext();
-	    socket = initSocket(type, address);
-	} catch (NetworkException e) {
-	    if (contextUpAndNowSockets())
-		destroyContext();
-	    throw e;
-	}
-	socketCounter++;
-	return socket;
+        Socket socket = null;
+        try {
+            if (contextDownAndNoSockets())
+                initContext();
+            socket = initSocket(type, address);
+        } catch (NetworkException e) {
+            if (contextUpAndNowSockets())
+                destroyContext();
+            throw e;
+        }
+        socketCounter++;
+        return socket;
     }
 
     synchronized void destroySocket(final Socket socket) {
-	try {
-	    socket.close();
-	} catch (ZError.CtxTerminatedException | ZError.IOException e) {
-	    throw new NetworkException("can't destroy socket", e);
-	} finally {
-	    socketCounter--;
-	    if (contextUpAndNowSockets())
-		destroyContext();
-	}
+        try {
+            socket.close();
+        } catch (ZError.CtxTerminatedException | ZError.IOException e) {
+            throw new NetworkException("can't destroy socket", e);
+        } finally {
+            socketCounter--;
+            if (contextUpAndNowSockets())
+                destroyContext();
+        }
     }
 
     private boolean contextUpAndNowSockets() {
-	return socketCounter == 0 && contextup;
+        return socketCounter == 0 && contextup;
     }
 
     private boolean contextDownAndNoSockets() {
-	return socketCounter == 0 && !contextup;
+        return socketCounter == 0 && !contextup;
     }
 
     private void initContext() {
-	try {
-	    zmqctx.init();
-	    contextup = true;
-	} catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
-	    throw new NetworkException("can't init networking context!", e);
-	}
+        try {
+            zmqctx.init();
+            contextup = true;
+        } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
+            throw new NetworkException("can't init networking context!", e);
+        }
     }
 
     private void destroyContext() {
-	try {
-	    zmqctx.close();
-	} catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
-	    throw new NetworkException("can't destroy networking context!", e);
-	}
+        try {
+            zmqctx.close();
+        } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
+            throw new NetworkException("can't destroy networking context!", e);
+        }
     }
 
     private Socket initSocket(final SocketType type, String address) {
-	try {
-	    return initSocketByType(type, address);
-	} catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
-	    throw new NetworkException("can't init requested socket type: " + type, e);
-	}
+        try {
+            return initSocketByType(type, address);
+        } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
+            throw new NetworkException("can't init requested socket type: " + type, e);
+        }
     }
 
     private Socket initSocketByType(final SocketType type, String address) {
-	Socket s = null;
-	switch (type) {
-	case CLIENT:
-	    s = zmqctx.socket(ZMQ.REQ);
-	    s.connect(address);
-	    return s;
-	case SERVER:
-	    s = zmqctx.socket(ZMQ.REP);
-	    s.bind(address);
-	    return s;
-	default:
-	    throw new NetworkException("can't init requested socket type: " + type);
-	}
+        Socket s = null;
+        switch (type) {
+        case CLIENT:
+            s = zmqctx.socket(ZMQ.REQ);
+            s.connect(address);
+            return s;
+        case SERVER:
+            s = zmqctx.socket(ZMQ.REP);
+            s.bind(address);
+            return s;
+        default:
+            throw new NetworkException("can't init requested socket type: " + type);
+        }
     }
 }

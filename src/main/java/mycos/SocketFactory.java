@@ -25,17 +25,17 @@ final class SocketFactory {
     private final GsonWrapper gson;
 
     SocketFactory(NetworkContextStateManager networkContextStateManager, GsonWrapper gson) {
-	this.gson = gson;
-	this.contextStateManager = networkContextStateManager;
+        this.gson = gson;
+        this.contextStateManager = networkContextStateManager;
     }
 
     Client clientSocket(final String address) {
-	Socket zmqsocket = contextStateManager.createSocket(SocketType.CLIENT, address);
-	return new ClientSocket(contextStateManager, zmqsocket, gson);
+        Socket zmqsocket = contextStateManager.createSocket(SocketType.CLIENT, address);
+        return new ClientSocket(contextStateManager, zmqsocket, gson);
     }
 
     Server serverSocket(final String address) {
-	Socket zmqsocket = contextStateManager.createSocket(SocketType.SERVER, address);
-	return new ServerSocket(contextStateManager, zmqsocket, gson);
+        Socket zmqsocket = contextStateManager.createSocket(SocketType.SERVER, address);
+        return new ServerSocket(contextStateManager, zmqsocket, gson);
     }
 }

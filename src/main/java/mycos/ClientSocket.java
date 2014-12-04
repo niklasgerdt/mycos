@@ -34,10 +34,10 @@ final class ClientSocket implements Client {
     private final ZMQ.Socket zmqsocket;
 
     ClientSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, GsonWrapper gson) {
-	this.gson = gson;
-	exec = Executors.newSingleThreadExecutor();
-	contextStateManager = networkContextStateManager;
-	this.zmqsocket = zmqsocket;
+        this.gson = gson;
+        exec = Executors.newSingleThreadExecutor();
+        contextStateManager = networkContextStateManager;
+        this.zmqsocket = zmqsocket;
     }
 
     /**
@@ -50,9 +50,8 @@ final class ClientSocket implements Client {
      */
     @Override
     public <C, S> Wait<S> ask(C object) {
-	Future<Optional<S>> future = exec.submit(
-		() -> sendAndReceive(object));
-	return new ReplyWaiter<S>(future);
+        Future<Optional<S>> future = exec.submit(() -> sendAndReceive(object));
+        return new ReplyWaiter<S>(future);
     }
 
     /**
@@ -63,24 +62,24 @@ final class ClientSocket implements Client {
      */
     @Override
     public <C, S> Optional<S> askAndWait(C object) {
-	return sendAndReceive(object);
+        return sendAndReceive(object);
     }
 
     @Override
     public void release() {
-	contextStateManager.destroySocket(zmqsocket);
+        contextStateManager.destroySocket(zmqsocket);
     }
 
     private <C, S> Optional<S> sendAndReceive(C object) {
-	try {
-	    String json = gson.toJson(object);
-	    zmqsocket.send(json);
-	    String reply = zmqsocket.recvStr();
-	    return gson.fromJson(reply);
-	} catch (ZMQException e) {
-	    throw new NetworkException("Network communication failed", e);
-	} catch (JsonParseException e) {
-	    throw new ParseException("Object parsing failed", e);
-	}
+        try {
+            String json = gson.toJson(object);
+            zmqsocket.send(json);
+            String reply = zmqsocket.recvStr();
+            return gson.fromJson(reply);
+        } catch (ZMQException e) {
+            throw new NetworkException("Network communication failed", e);
+        } catch (JsonParseException e) {
+            throw new ParseException("Object parsing failed", e);
+        }
     }
 }

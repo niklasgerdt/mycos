@@ -16,7 +16,6 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package mycos;
 
 import java.util.Optional;
@@ -27,5 +26,4 @@ public interface Server extends Socket {
 
     <V> void reply(V v);
 
-    // <V> void onMessage(V->boolean) tms;
 }

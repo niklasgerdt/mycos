@@ -27,6 +27,11 @@ public final class SocketBuilder {
     private final SocketFactory socketFactory;
     private final CommunicationMedium communicationMedium;
 
+    private SocketBuilder(SocketFactory socketFactory, CommunicationMedium communicationMedium) {
+        this.socketFactory = socketFactory;
+        this.communicationMedium = communicationMedium;
+    }
+
     /**
      * Creates a SocketBuilder instance that can be used to build Socket with various configuration settings.
      * SocketBuilder follows the immutable builder pattern, and it is typically used by first invoking various
@@ -34,12 +39,7 @@ public final class SocketBuilder {
      * , {@link #asServer}).
      */
     public static SocketBuilder buildSocket() {
-	return new SocketBuilder(GraphBuilder.socketFactory(), CommunicationMedium.TCP);
-    }
-
-    private SocketBuilder(SocketFactory socketFactory, CommunicationMedium communicationMedium) {
-	this.socketFactory = socketFactory;
-	this.communicationMedium = communicationMedium;
+        return new SocketBuilder(GraphBuilder.socketFactory(), CommunicationMedium.TCP);
     }
 
     /**
@@ -48,7 +48,7 @@ public final class SocketBuilder {
      * @return a reference to new {@code SocketBuilder} object to fulfil the immutable "Builder" pattern
      */
     public SocketBuilder asRemote() {
-	return new SocketBuilder(socketFactory, CommunicationMedium.TCP);
+        return new SocketBuilder(socketFactory, CommunicationMedium.TCP);
     }
 
     /**
@@ -57,7 +57,7 @@ public final class SocketBuilder {
      * @return a reference to new {@code SocketBuilder} object to fulfil the immutable "Builder" pattern
      */
     public SocketBuilder asLocal() {
-	return new SocketBuilder(socketFactory, CommunicationMedium.IPC);
+        return new SocketBuilder(socketFactory, CommunicationMedium.IPC);
     }
 
     /**
@@ -66,8 +66,10 @@ public final class SocketBuilder {
      * @throws UnsupportedOperationException
      *             not yet implemented
      */
-    public SocketBuilder withTimeOut(final int timeout) throws UnsupportedOperationException {
-	throw new UnsupportedOperationException();
+    public SocketBuilder withTimeOut(final int timeout) {
+        if (timeout < 0)
+            throw new IllegalArgumentException("timeout has to be GE zero! (was " + timeout + ")");
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -86,9 +88,9 @@ public final class SocketBuilder {
      *             if serverAddress is null
      */
     public Client asClientOf(final String serverAddress) {
-	Objects.requireNonNull(serverAddress);
-	// TODO validate address
-	return socketFactory.clientSocket(communicationMedium.prefix() + serverAddress);
+        Objects.requireNonNull(serverAddress);
+        // TODO validate address
+        return socketFactory.clientSocket(communicationMedium.prefix() + serverAddress);
     }
 
     /**
@@ -106,9 +108,9 @@ public final class SocketBuilder {
      *             if serverAddress is null
      */
     public Server asServerAt(final String serverAddress) {
-	Objects.requireNonNull(serverAddress);
-	// TODO validate address
-	return socketFactory.serverSocket(communicationMedium.prefix() + serverAddress);
+        Objects.requireNonNull(serverAddress);
+        // TODO validate address
+        return socketFactory.serverSocket(communicationMedium.prefix() + serverAddress);
     }
 
     /**
@@ -116,7 +118,9 @@ public final class SocketBuilder {
      *             not yet implemented
      */
     public Publisher asPublisherAt(final String address) {
-	throw new UnsupportedOperationException();
+        Objects.requireNonNull(address);
+        // TODO validate address
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -124,7 +128,9 @@ public final class SocketBuilder {
      *             not yet implemented
      */
     public Publisher asPublisherAtWithRouterAt(final String address, final String routerAddress) {
-	throw new UnsupportedOperationException();
+        Objects.requireNonNull(address, routerAddress);
+        // TODO validate address
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -132,7 +138,9 @@ public final class SocketBuilder {
      *             not yet implemented
      */
     public Subscriber asSubscriberOf(final String address) {
-	throw new UnsupportedOperationException();
+        Objects.requireNonNull(address);
+        // TODO validate address
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -140,7 +148,9 @@ public final class SocketBuilder {
      *             not yet implemented
      */
     public Publisher asSubscriberOfWithFilter(final String address, final String filter) {
-	throw new UnsupportedOperationException();
+        Objects.requireNonNull(address, filter);
+        // TODO validate address
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -148,7 +158,9 @@ public final class SocketBuilder {
      *             not yet implemented
      */
     public Router asRouterAt(final String address) {
-	throw new UnsupportedOperationException();
+        Objects.requireNonNull(address);
+        // TODO validate address
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -156,6 +168,8 @@ public final class SocketBuilder {
      *             not yet implemented
      */
     public Router asForkedRouterAt(final String address) {
-	throw new UnsupportedOperationException();
+        Objects.requireNonNull(address);
+        // TODO validate address
+        throw new UnsupportedOperationException();
     }
 }

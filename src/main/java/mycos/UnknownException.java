@@ -18,24 +18,26 @@
  */
 package mycos;
 
-import com.google.gson.Gson;
+/**
+ * This exception is raised if there is a unexpected exception and the library can't categorise it. This class is only
+ * thin wrapper around more specific exception.
+ * <p>
+ * Receiving {@code UnknownException} indicates a bug in the library. Maybe report an issue, please! *
+ * <p>
+ * This exception is a {@link RuntimeException} because clients can not be expected to know how to recover from this.
+ */
+public class UnknownException extends RuntimeException {
+    private static final long serialVersionUID = 1L;
 
-final class GraphBuilder {
-    private static final SocketFactory SOCKETFACTORY;
-
-    private GraphBuilder() {
-        // utility class
+    UnknownException(String msg) {
+        super(msg);
     }
 
-    static {
-        final GsonWrapper gson = new GsonWrapper(new Gson());
-        final ZeroMqContextWrapper ctxWrap = new ZeroMqContextWrapper();
-        final NetworkContextStateManager ncsm = new NetworkContextStateManager(ctxWrap);
-        SOCKETFACTORY = new SocketFactory(ncsm, gson);
-        // read properties files, system properties, compiler parameters...
+    UnknownException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 
-    static SocketFactory socketFactory() {
-        return SOCKETFACTORY;
+    UnknownException(Throwable cause) {
+        super(cause);
     }
 }

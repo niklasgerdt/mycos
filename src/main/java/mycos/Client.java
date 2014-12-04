@@ -20,6 +20,10 @@ package mycos;
 
 import java.util.*;
 
+/**
+ * TODO describe
+ *
+ */
 public interface Client extends Socket {
 
     /**
