@@ -28,8 +28,9 @@ class ZeroMqContextWrapper {
         ctx = ZMQ.context(IO_THREADS);
     }
 
-    ZMQ.Socket socket(final int type) {
-        return ctx.socket(type);
+    ZmqSock socket(final int type) {
+        final ZmqSock s = new ZmqSock(ctx.socket(type));
+        return s;
     }
 
     void close() {

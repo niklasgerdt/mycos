@@ -1,4 +1,4 @@
-package mycos.lookandfeel;
+package mycos.systemtests;
 
 public class TestObject {
 

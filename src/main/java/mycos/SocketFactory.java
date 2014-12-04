@@ -18,8 +18,6 @@
  */
 package mycos;
 
-import org.zeromq.ZMQ.Socket;
-
 final class SocketFactory {
     private final NetworkContextStateManager contextStateManager;
     private final GsonWrapper gson;
@@ -30,12 +28,12 @@ final class SocketFactory {
     }
 
     Client clientSocket(final String address) {
-        Socket zmqsocket = contextStateManager.createSocket(SocketType.CLIENT, address);
+        ZmqSock zmqsocket = contextStateManager.createSocket(SocketType.CLIENT, address);
         return new ClientSocket(contextStateManager, zmqsocket, gson);
     }
 
     Server serverSocket(final String address) {
-        Socket zmqsocket = contextStateManager.createSocket(SocketType.SERVER, address);
+        ZmqSock zmqsocket = contextStateManager.createSocket(SocketType.SERVER, address);
         return new ServerSocket(contextStateManager, zmqsocket, gson);
     }
 }

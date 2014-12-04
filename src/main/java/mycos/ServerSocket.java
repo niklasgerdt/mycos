@@ -19,17 +19,15 @@
 package mycos;
 
 import java.util.Optional;
-import org.zeromq.ZMQ;
-import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMQException;
 import com.google.gson.JsonParseException;
 
 final class ServerSocket implements Server {
     private final NetworkContextStateManager contextStateManager;
     private final GsonWrapper gson;
-    private final ZMQ.Socket zmqsocket;
+    private final ZmqSock zmqsocket;
 
-    ServerSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, GsonWrapper gson) {
+    ServerSocket(NetworkContextStateManager networkContextStateManager, ZmqSock zmqsocket, GsonWrapper gson) {
         this.gson = gson;
         this.contextStateManager = networkContextStateManager;
         this.zmqsocket = zmqsocket;

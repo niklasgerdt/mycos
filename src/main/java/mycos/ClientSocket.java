@@ -22,8 +22,6 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.zeromq.ZMQ;
-import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMQException;
 import com.google.gson.JsonParseException;
 
@@ -31,9 +29,9 @@ final class ClientSocket implements Client {
     private final ExecutorService exec;
     private final NetworkContextStateManager contextStateManager;
     private final GsonWrapper gson;
-    private final ZMQ.Socket zmqsocket;
+    private final ZmqSock zmqsocket;
 
-    ClientSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, GsonWrapper gson) {
+    ClientSocket(NetworkContextStateManager networkContextStateManager, ZmqSock zmqsocket, GsonWrapper gson) {
         this.gson = gson;
         exec = Executors.newSingleThreadExecutor();
         contextStateManager = networkContextStateManager;

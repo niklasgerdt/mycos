@@ -19,7 +19,6 @@
 package mycos;
 
 import org.zeromq.ZMQ;
-import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMQException;
 import zmq.ZError;
 
@@ -33,34 +32,33 @@ final class NetworkContextStateManager {
         zmqctx = contextWrapper;
     }
 
-    synchronized Socket createSocket(final SocketType type, final String address) {
-        Socket socket = null;
+    synchronized ZmqSock createSocket(final SocketType type, final String address) {
         try {
             if (contextDownAndNoSockets())
                 initContext();
-            socket = initSocket(type, address);
+            final ZmqSock socket = initSocket(type, address);
+            socketCounter++;
+            return socket;
         } catch (NetworkException e) {
-            if (contextUpAndNowSockets())
+            if (contextUpAndNoSockets())
                 destroyContext();
             throw e;
         }
-        socketCounter++;
-        return socket;
     }
 
-    synchronized void destroySocket(final Socket socket) {
+    synchronized void destroySocket(final ZmqSock socket) {
         try {
             socket.close();
         } catch (ZError.CtxTerminatedException | ZError.IOException e) {
             throw new NetworkException("can't destroy socket", e);
         } finally {
             socketCounter--;
-            if (contextUpAndNowSockets())
+            if (contextUpAndNoSockets())
                 destroyContext();
         }
     }
 
-    private boolean contextUpAndNowSockets() {
+    private boolean contextUpAndNoSockets() {
         return socketCounter == 0 && contextup;
     }
 
@@ -85,7 +83,7 @@ final class NetworkContextStateManager {
         }
     }
 
-    private Socket initSocket(final SocketType type, String address) {
+    private ZmqSock initSocket(final SocketType type, String address) {
         try {
             return initSocketByType(type, address);
         } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
@@ -93,15 +91,14 @@ final class NetworkContextStateManager {
         }
     }
 
-    private Socket initSocketByType(final SocketType type, String address) {
-        Socket s = null;
+    private ZmqSock initSocketByType(final SocketType type, String address) {
         switch (type) {
         case CLIENT:
-            s = zmqctx.socket(ZMQ.REQ);
-            s.connect(address);
-            return s;
+            ZmqSock c = zmqctx.socket(ZMQ.REQ);
+            c.connect(address);
+            return c;
         case SERVER:
-            s = zmqctx.socket(ZMQ.REP);
+            ZmqSock s = zmqctx.socket(ZMQ.REP);
             s.bind(address);
             return s;
         default:
