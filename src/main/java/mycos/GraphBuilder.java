@@ -21,15 +21,21 @@ package mycos;
 import com.google.gson.Gson;
 
 final class GraphBuilder {
-    private static final SocketFactory socketFactory;
+    private static final SocketFactory SOCKETFACTORY;
+
+    private GraphBuilder() {
+	// utility class
+    }
 
     static {
 	final GsonWrapper gson = new GsonWrapper(new Gson());
-	socketFactory = new SocketFactory(new NetworkContextStateManager(), gson);
-	// read properties files, system properties or stuff like that
+	final ZeroMqContextWrapper ctxWrap = new ZeroMqContextWrapper();
+	final NetworkContextStateManager ncsm = new NetworkContextStateManager(ctxWrap);
+	SOCKETFACTORY = new SocketFactory(ncsm, gson);
+	// read properties files, system properties, compiler parameters...
     }
 
     static SocketFactory socketFactory() {
-	return socketFactory;
+	return SOCKETFACTORY;
     }
 }

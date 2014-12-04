@@ -25,10 +25,13 @@ import zmq.ZError;
 
 // TODO all exception types need to be confirmed. This means digging in to zeromq source code.
 final class NetworkContextStateManager {
-    private static final int IO_THREADS = 1;
-    private ZMQ.Context zmqctx;
+    private final ZeroMqContextWrapper zmqctx;
     private int socketCounter = 0;
     private boolean contextup = false;
+
+    NetworkContextStateManager(final ZeroMqContextWrapper contextWrapper) {
+	zmqctx = contextWrapper;
+    }
 
     synchronized Socket createSocket(final SocketType type, final String address) {
 	Socket socket = null;
@@ -39,7 +42,7 @@ final class NetworkContextStateManager {
 	} catch (NetworkException e) {
 	    if (contextUpAndNowSockets())
 		destroyContext();
-	    throw (e);
+	    throw e;
 	}
 	socketCounter++;
 	return socket;
@@ -67,7 +70,7 @@ final class NetworkContextStateManager {
 
     private void initContext() {
 	try {
-	    zmqctx = ZMQ.context(IO_THREADS);
+	    zmqctx.init();
 	    contextup = true;
 	} catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
 	    throw new NetworkException("can't init networking context!", e);
@@ -78,7 +81,7 @@ final class NetworkContextStateManager {
 	try {
 	    zmqctx.close();
 	} catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
-	    throw new NetworkException("can't init networking context!", e);
+	    throw new NetworkException("can't destroy networking context!", e);
 	}
     }
 

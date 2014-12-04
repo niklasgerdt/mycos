@@ -50,11 +50,9 @@ final class ClientSocket implements Client {
      */
     @Override
     public <C, S> Wait<S> ask(C object) {
-	Future<Optional<S>> future = exec.submit(() -> {
-	    return sendAndReceive(object);
-	});
+	Future<Optional<S>> future = exec.submit(
+		() -> sendAndReceive(object));
 	return new ReplyWaiter<S>(future);
-
     }
 
     /**
