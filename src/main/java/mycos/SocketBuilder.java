@@ -33,8 +33,8 @@ public final class SocketBuilder {
      * configuration methods to set desired options, and finally calling the actual builder method ({@link #asClientOf}
      * , {@link #asServer}).
      */
-    public SocketBuilder build() {
-	return new SocketBuilder(GraphBuilder.socketFactory, CommunicationMedium.TCP);
+    public static SocketBuilder buildSocket() {
+	return new SocketBuilder(GraphBuilder.socketFactory(), CommunicationMedium.TCP);
     }
 
     private SocketBuilder(SocketFactory socketFactory, CommunicationMedium communicationMedium) {
@@ -88,7 +88,6 @@ public final class SocketBuilder {
     public Client asClientOf(final String serverAddress) {
 	Objects.requireNonNull(serverAddress);
 	// TODO validate address
-
 	return socketFactory.clientSocket(communicationMedium.prefix() + serverAddress);
     }
 

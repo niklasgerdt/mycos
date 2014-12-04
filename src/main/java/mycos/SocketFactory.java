@@ -19,13 +19,12 @@
 package mycos;
 
 import org.zeromq.ZMQ.Socket;
-import com.google.gson.Gson;
 
 final class SocketFactory {
     private final NetworkContextStateManager contextStateManager;
-    private final Gson gson;
+    private final GsonWrapper gson;
 
-    SocketFactory(NetworkContextStateManager networkContextStateManager, Gson gson) {
+    SocketFactory(NetworkContextStateManager networkContextStateManager, GsonWrapper gson) {
 	this.gson = gson;
 	this.contextStateManager = networkContextStateManager;
     }

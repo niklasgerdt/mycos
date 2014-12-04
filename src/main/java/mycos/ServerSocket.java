@@ -16,25 +16,20 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package mycos;
 
-import java.lang.reflect.Type;
-import java.util.Objects;
 import java.util.Optional;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMQException;
-import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 
 final class ServerSocket implements Server {
     private final NetworkContextStateManager contextStateManager;
-    private final Gson gson;
+    private final GsonWrapper gson;
     private final ZMQ.Socket zmqsocket;
 
-    ServerSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, Gson gson) {
+    ServerSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, GsonWrapper gson) {
 	this.gson = gson;
 	this.contextStateManager = networkContextStateManager;
 	this.zmqsocket = zmqsocket;
@@ -44,20 +39,11 @@ final class ServerSocket implements Server {
     public <V> Optional<V> hang() {
 	try {
 	    final String reply = zmqsocket.recvStr();
-	    return parseReply(reply);
+	    return gson.fromJson(reply);
 	} catch (ZMQException e) {
 	    throw new NetworkException("Network communication failed", e);
 	} catch (JsonParseException e) {
 	    throw new ParseException("Object parsing failed", e);
-	}
-    }
-
-    private <S> Optional<S> parseReply(String reply) {
-	if (Objects.isNull(reply))
-	    return Optional.empty();
-	else {
-	    Type type = new TypeToken<S>() {}.getType();
-	    return Optional.of(gson.fromJson(reply, type));
 	}
     }
 

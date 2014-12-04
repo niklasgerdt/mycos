@@ -18,23 +18,22 @@
  */
 package mycos;
 
-import java.lang.reflect.Type;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Socket;
 import org.zeromq.ZMQException;
-import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 
 final class ClientSocket implements Client {
     private final ExecutorService exec;
     private final NetworkContextStateManager contextStateManager;
-    private final Gson gson;
+    private final GsonWrapper gson;
     private final ZMQ.Socket zmqsocket;
 
-    ClientSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, Gson gson) {
+    ClientSocket(NetworkContextStateManager networkContextStateManager, Socket zmqsocket, GsonWrapper gson) {
 	this.gson = gson;
 	exec = Executors.newSingleThreadExecutor();
 	contextStateManager = networkContextStateManager;
@@ -79,20 +78,11 @@ final class ClientSocket implements Client {
 	    String json = gson.toJson(object);
 	    zmqsocket.send(json);
 	    String reply = zmqsocket.recvStr();
-	    return parseReply(reply);
+	    return gson.fromJson(reply);
 	} catch (ZMQException e) {
 	    throw new NetworkException("Network communication failed", e);
 	} catch (JsonParseException e) {
 	    throw new ParseException("Object parsing failed", e);
-	}
-    }
-
-    private <S> Optional<S> parseReply(String reply) {
-	if (Objects.isNull(reply))
-	    return Optional.empty();
-	else {
-	    Type type = new TypeToken<S>() {}.getType();
-	    return Optional.of(gson.fromJson(reply, type));
 	}
     }
 }
