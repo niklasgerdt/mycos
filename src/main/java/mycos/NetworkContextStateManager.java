@@ -18,12 +18,15 @@
  */
 package mycos;
 
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQException;
 import zmq.ZError;
 
 // TODO all exception types need to be confirmed. This means digging in to zeromq source code.
 final class NetworkContextStateManager {
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final ZeroMqContextWrapper zmqctx;
     private int socketCounter = 0;
     private boolean contextup = false;
@@ -78,6 +81,7 @@ final class NetworkContextStateManager {
     private void destroyContext() {
         try {
             zmqctx.close();
+            contextup = false;
         } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
             throw new NetworkException("can't destroy networking context!", e);
         }
