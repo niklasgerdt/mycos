@@ -18,6 +18,7 @@
  */
 package mycos;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.zeromq.ZMQ;
@@ -25,22 +26,25 @@ import org.zeromq.ZMQException;
 import zmq.ZError;
 
 // TODO all exception types need to be confirmed. This means digging in to zeromq source code.
+// TODO bug: It is possible to still create socket, when releasing last socket and destroying context. Meaning that the
+// context slips away and call to context.socket(type) fails
 final class NetworkContextStateManager {
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final ZeroMqContextWrapper zmqctx;
-    private int socketCounter = 0;
+    private AtomicInteger socketCounter = new AtomicInteger(0);
     private boolean contextup = false;
 
     NetworkContextStateManager(final ZeroMqContextWrapper contextWrapper) {
         zmqctx = contextWrapper;
     }
 
-    synchronized ZmqSock createSocket(final SocketType type, final String address) {
+    ZmqSock createSocket(final SocketType type, final String address) {
         try {
-            if (contextDownAndNoSockets())
+            if (contextDownAndNoSockets()) {
                 initContext();
+            }
             final ZmqSock socket = initSocket(type, address);
-            socketCounter++;
+            socketCounter.incrementAndGet();
             return socket;
         } catch (NetworkException e) {
             if (contextUpAndNoSockets())
@@ -49,42 +53,36 @@ final class NetworkContextStateManager {
         }
     }
 
-    synchronized void destroySocket(final ZmqSock socket) {
+    void destroySocket(final ZmqSock socket) {
         try {
             socket.close();
         } catch (ZError.CtxTerminatedException | ZError.IOException e) {
             throw new NetworkException("can't destroy socket", e);
         } finally {
-            socketCounter--;
+            socketCounter.decrementAndGet();
             if (contextUpAndNoSockets())
                 destroyContext();
         }
     }
 
-    private boolean contextUpAndNoSockets() {
-        return socketCounter == 0 && contextup;
+    synchronized private void initContext() {
+        if (contextDownAndNoSockets())
+            try {
+                zmqctx.init();
+                contextup = true;
+            } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
+                throw new NetworkException("can't init networking context!", e);
+            }
     }
 
-    private boolean contextDownAndNoSockets() {
-        return socketCounter == 0 && !contextup;
-    }
-
-    private void initContext() {
-        try {
-            zmqctx.init();
-            contextup = true;
-        } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
-            throw new NetworkException("can't init networking context!", e);
-        }
-    }
-
-    private void destroyContext() {
-        try {
-            zmqctx.close();
-            contextup = false;
-        } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
-            throw new NetworkException("can't destroy networking context!", e);
-        }
+    synchronized private void destroyContext() {
+        if (contextUpAndNoSockets())
+            try {
+                zmqctx.close();
+                contextup = false;
+            } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException | ZError.IOException e) {
+                throw new NetworkException("can't destroy networking context!", e);
+            }
     }
 
     private ZmqSock initSocket(final SocketType type, String address) {
@@ -108,5 +106,13 @@ final class NetworkContextStateManager {
         default:
             throw new NetworkException("can't init requested socket type: " + type);
         }
+    }
+
+    private boolean contextUpAndNoSockets() {
+        return socketCounter.get() == 0 && contextup;
+    }
+
+    private boolean contextDownAndNoSockets() {
+        return socketCounter.get() == 0 && !contextup;
     }
 }
