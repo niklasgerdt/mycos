@@ -2,6 +2,7 @@ package mycos;
 
 import org.zeromq.ZMQ;
 
+// Not final because of Mockito and unit tests
 class ZmqSock {
   private final ZMQ.Socket zmqsocket;
 
@@ -21,11 +22,11 @@ class ZmqSock {
     zmqsocket.close();
   }
 
-  public String recvStr() {
+  String recvStr() {
     return zmqsocket.recvStr();
   }
 
-  public void send(String data) {
+  void send(String data) {
     zmqsocket.send(data);
   }
 }

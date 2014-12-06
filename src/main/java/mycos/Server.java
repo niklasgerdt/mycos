@@ -22,10 +22,19 @@ package mycos;
 
 import java.util.Optional;
 
+/**
+ * 
+ */
 public interface Server extends Socket {
 
+  /**
+   * 
+   */
   <V> Optional<V> hang();
 
+  /**
+   * 
+   */
   <V> void reply(V v);
 
 }

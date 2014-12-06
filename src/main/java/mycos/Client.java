@@ -23,18 +23,28 @@ package mycos;
 import java.util.*;
 
 /**
- * TODO describe
- *
+ * Client is special kind of socket. It can send requests to server and either block and wait for
+ * the result or send the request and retrieve {@link Wait} that wraps the result. With {@link Wait}
+ * the client can do some work while the processing of the result is in progress.
  */
 public interface Client extends Socket {
 
   /**
-   * @throws NetworkException if there was a networking related issues.
+   * This method forks request that waits for reply. Method returns {@link Wait}. User can can use
+   * it to retrieve the status of the request or the actual result.
+   * 
+   * @return Object that represents asynchronous reply result.
+   * @throws IllegalStateException if the socket is already released
    */
   <C, S> Wait<S> ask(C object);
 
   /**
-   * @throws NetworkException if there was a networking related issues.
+   * This method makes the request and waits for the reply.
+   * 
+   * @return Reply wrapped in {@link Optional}
+   * @throws ParseException if failed to parse object
+   * @throws NetworkException if network exception occurred
+   * @throws IllegalStateException if the socket is already released
    */
   <C, S> Optional<S> askAndWait(C clientObject);
 

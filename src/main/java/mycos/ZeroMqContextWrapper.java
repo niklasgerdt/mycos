@@ -22,6 +22,7 @@ package mycos;
 
 import org.zeromq.ZMQ;
 
+//Not final because of Mockito and unit tests
 class ZeroMqContextWrapper {
   private static final int IO_THREADS = 1;
   private ZMQ.Context ctx;

@@ -6,7 +6,6 @@ import java.util.Optional;
 import mycos.*;
 import org.junit.Test;
 
-// System level test
 public class ClientServerTests {
   private static final String REQUEST = "request";
   private static final String REPLY = "reply";
@@ -23,9 +22,9 @@ public class ClientServerTests {
     Optional<String> what = server.hang();
     server.reply(REPLY);
     Optional<String> reply = waitReply.get();
-    release(client, server);
     assertEquals(REQUEST, what.get());
     assertEquals(REPLY, reply.get());
+    release(client, server);
   }
 
   @Test
@@ -36,9 +35,9 @@ public class ClientServerTests {
     Optional<String> what = server.hang();
     server.reply(REPLY);
     Optional<String> reply = waitReply.get();
-    release(client, server);
     assertEquals(REQUEST, what.get());
     assertEquals(REPLY, reply.get());
+    release(server, client);
   }
 
   @Test
@@ -56,5 +55,17 @@ public class ClientServerTests {
     assertEquals("C1", w1.get().get());
     assertEquals("C2", w2.get().get());
     assertEquals("C3", w3.get().get());
+    release(c1, c2, c3, s);
+  }
+
+  @Test
+  public void clientServerWithPojo() {
+    Client c1 = SocketBuilder.buildSocket().asClientOf("localhost:8000");
+    Server s = SocketBuilder.buildSocket().asServerAt("localhost:8000");
+    Wait<TestObject> w1 = c1.ask(new TestObject());
+    Optional<TestObject> to = s.hang();
+    s.reply(new TestObject());
+    assertEquals(w1.get().get(), to.get());
+    release(c1, s);
   }
 }

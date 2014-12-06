@@ -20,9 +20,9 @@
  */
 package mycos;
 
+/**
+ * Subscriber...
+ */
 public interface Subscriber {
 
-  // ex. void react(Reactor reactor) etc..
-
-  // ex. <V> V hang() etc..
 }

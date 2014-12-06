@@ -20,6 +20,9 @@
  */
 package mycos;
 
+/**
+ * Publisher style socket...
+ */
 public interface Publisher {
 
   <V> void push(V v);

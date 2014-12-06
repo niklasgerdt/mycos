@@ -20,7 +20,41 @@
  */
 package mycos;
 
+/**
+ * Socket interface..
+ */
 public interface Socket {
 
+  /**
+   * Calling release releases the socket from networking resources. This socket can not be used
+   * after release and calls to this socket will fail after the socket is released.
+   */
   void release();
+
+  /**
+   * Method to query the status of the socket.
+   * 
+   * @return true if the socket is released (invalid). Otherwise false.
+   */
+  boolean released();
+
+  /**
+   * Method to query the status of the socket.
+   * 
+   * @return true if the socket is unreleased (valid). Otherwise false.
+   */
+  default boolean valid() {
+    return !this.released();
+  }
+
+  /**
+   * Validates the state of the socket.
+   * 
+   * @param socket to validate
+   * @throws IllegalStateException if the socket is already released
+   */
+  static void validateState(Socket socket) {
+    if (socket.released())
+      throw new IllegalStateException("Socket is released and in invalid state!");
+  }
 }

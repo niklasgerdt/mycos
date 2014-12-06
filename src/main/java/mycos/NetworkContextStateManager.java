@@ -30,7 +30,7 @@ import zmq.ZError;
 
 // TODO all exception types need to be confirmed. This means digging in to zeromq source code.
 final class NetworkContextStateManager {
-  private static final int MAX_SOCKETS = 1024;
+  private static final int MAX_PERMITS = 1024;
   private static final int INITIAL_PERMITS = 1;
   private final Semaphore semaphore = new Semaphore(INITIAL_PERMITS);
   private final ZeroMqContextWrapper zmqctx;
@@ -46,7 +46,7 @@ final class NetworkContextStateManager {
       semaphore.acquire();
       if (contextDownAndNoSockets()) {
         initContext();
-        semaphore.release(MAX_SOCKETS);
+        semaphore.release(MAX_PERMITS);
         return createSocket(type, address);
       }
       final ZmqSock socket = initSocket(type, address);
@@ -114,7 +114,7 @@ final class NetworkContextStateManager {
       drainSemaphoreForContextDestroying();
       destroyContext();
       if (contextup)
-        semaphore.release(MAX_SOCKETS);
+        semaphore.release(MAX_PERMITS);
       else
         semaphore.release(INITIAL_PERMITS);
     }
@@ -123,20 +123,15 @@ final class NetworkContextStateManager {
   private void drainSemaphoreForContextDestroying() {
     try {
       semaphore.acquire();
-      drainSemaphore();
+      int snapped = semaphore.drainPermits();
+      while (snapped - MAX_PERMITS > 0)
+        snapped += semaphore.drainPermits();
     } catch (InterruptedException e) {
       throw new UnknownException("Socket destroying thread interrupted by client", e);
     }
   }
 
-  private void drainSemaphore() {
-    int snapped = semaphore.drainPermits();
-    while (snapped - MAX_SOCKETS - INITIAL_PERMITS > 0)
-      snapped += semaphore.drainPermits();
-  }
-  
-
-  private synchronized void destroyContext() {
+  private void destroyContext() {
     if (contextUpAndNoSockets())
       try {
         zmqctx.close();
@@ -146,7 +141,7 @@ final class NetworkContextStateManager {
         throw new NetworkException("can't destroy networking context!", e);
       }
   }
-  
+
   private boolean contextUpAndNoSockets() {
     return socketCounter.get() == 0 && contextup;
   }

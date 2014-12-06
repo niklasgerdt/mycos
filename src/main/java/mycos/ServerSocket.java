@@ -21,13 +21,16 @@
 package mycos;
 
 import java.util.Optional;
+
 import org.zeromq.ZMQException;
+
 import com.google.gson.JsonParseException;
 
 final class ServerSocket implements Server {
   private final NetworkContextStateManager contextStateManager;
   private final GsonWrapper gson;
   private final ZmqSock zmqsocket;
+  private boolean released = false;
 
   ServerSocket(NetworkContextStateManager networkContextStateManager, ZmqSock zmqsocket,
       GsonWrapper gson) {
@@ -36,8 +39,12 @@ final class ServerSocket implements Server {
     this.zmqsocket = zmqsocket;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public <V> Optional<V> hang() {
+    Socket.validateState(this);
     try {
       final String reply = zmqsocket.recvStr();
       return gson.fromJson(reply);
@@ -48,14 +55,29 @@ final class ServerSocket implements Server {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public <V> void reply(V object) {
+    Socket.validateState(this);
     String json = gson.toJson(object);
     zmqsocket.send(json);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void release() {
     contextStateManager.destroySocket(zmqsocket);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean released() {
+    return released;
   }
 }

@@ -57,7 +57,10 @@ public interface Wait<V> {
    * {@code Optional.empty} is returned, if there is no result.
    *
    * @return the computed result as {@code Optional<V>} or {@code Optional.empty}, if no result
-   * @throws NetworkException if the current thread experienced exception
+   * @throws NetworkException if the current thread experienced network related exception
+   * @throws ParseException if the current thread experienced parsing exception
+   * @throws UnknownException if the thread was interrupted or experienced other unknown problem.
+   *         Basically this means a bug in the software.
    */
   Optional<V> get();
 }

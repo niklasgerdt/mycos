@@ -32,6 +32,7 @@ final class ClientSocket implements Client {
   private final NetworkContextStateManager contextStateManager;
   private final GsonWrapper gson;
   private final ZmqSock zmqsocket;
+  private boolean released;
 
   ClientSocket(NetworkContextStateManager networkContextStateManager, ZmqSock zmqsocket,
       GsonWrapper gson) {
@@ -42,29 +43,38 @@ final class ClientSocket implements Client {
   }
 
   /**
-   * This method does not throw, but resulting Wait can throw these exceptions.
-   * 
-   * @throws ParseException if failed to parse object
-   * @throws NetworkException if network exception occurred
+   * {@inheritDoc}
    */
   @Override
   public <C, S> Wait<S> ask(C object) {
+    Socket.validateState(this);
     Future<Optional<S>> future = exec.submit(() -> sendAndReceive(object));
     return new ReplyWaiter<S>(future);
   }
 
   /**
-   * @throws ParseException if failed to parse object
-   * @throws NetworkException if network exception occurred
+   * {@inheritDoc}
    */
   @Override
   public <C, S> Optional<S> askAndWait(C object) {
+    Socket.validateState(this);
     return sendAndReceive(object);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public void release() {
     contextStateManager.destroySocket(zmqsocket);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean released() {
+    return released;
   }
 
   private <C, S> Optional<S> sendAndReceive(C object) {
