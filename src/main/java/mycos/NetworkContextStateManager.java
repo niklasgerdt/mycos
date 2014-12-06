@@ -20,21 +20,21 @@
  */
 package mycos;
 
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQException;
+
 import zmq.ZError;
 
 // TODO all exception types need to be confirmed. This means digging in to zeromq source code.
-// TODO bug: It is possible to still create socket, when releasing last socket and destroying
-// context. Meaning that the
-// context slips away and call to context.socket(type) fails
 final class NetworkContextStateManager {
-  private final ReadWriteLock lock = new ReentrantReadWriteLock();
+  private static final int MAX_SOCKETS = 1024;
+  private static final int INITIAL_PERMITS = 1;
+  private final Semaphore semaphore = new Semaphore(INITIAL_PERMITS);
   private final ZeroMqContextWrapper zmqctx;
-  private AtomicInteger socketCounter = new AtomicInteger(0);
+  private final AtomicInteger socketCounter = new AtomicInteger(0);
   private boolean contextup = false;
 
   NetworkContextStateManager(final ZeroMqContextWrapper contextWrapper) {
@@ -43,18 +43,23 @@ final class NetworkContextStateManager {
 
   ZmqSock createSocket(final SocketType type, final String address) {
     try {
-      synchronized (this) {
-        if (contextDownAndNoSockets()) {
-          initContext();
-        }
-        final ZmqSock socket = initSocket(type, address);
-        socketCounter.incrementAndGet();
-        return socket;
+      semaphore.acquire();
+      if (contextDownAndNoSockets()) {
+        initContext();
+        semaphore.release(MAX_SOCKETS);
+        return createSocket(type, address);
       }
+      final ZmqSock socket = initSocket(type, address);
+      socketCounter.incrementAndGet();
+      return socket;
     } catch (NetworkException e) {
       if (contextUpAndNoSockets())
         destroyContext();
       throw e;
+    } catch (InterruptedException e) {
+      throw new UnknownException("Socket creating thread interrupted by client", e);
+    } finally {
+      semaphore.release();
     }
   }
 
@@ -65,12 +70,11 @@ final class NetworkContextStateManager {
       throw new NetworkException("can't destroy socket", e);
     } finally {
       socketCounter.decrementAndGet();
-      if (contextUpAndNoSockets())
-        destroyContext();
+      drainPermitsAndDestroyContextIfNecessary();
     }
   }
 
-  private synchronized void initContext() {
+  private void initContext() {
     if (contextDownAndNoSockets())
       try {
         zmqctx.init();
@@ -78,17 +82,6 @@ final class NetworkContextStateManager {
       } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException
           | ZError.IOException e) {
         throw new NetworkException("can't init networking context!", e);
-      }
-  }
-
-  private synchronized void destroyContext() {
-    if (contextUpAndNoSockets())
-      try {
-        zmqctx.close();
-        contextup = false;
-      } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException
-          | ZError.IOException e) {
-        throw new NetworkException("can't destroy networking context!", e);
       }
   }
 
@@ -116,6 +109,44 @@ final class NetworkContextStateManager {
     }
   }
 
+  private void drainPermitsAndDestroyContextIfNecessary() {
+    if (contextUpAndNoSockets()) {
+      drainSemaphoreForContextDestroying();
+      destroyContext();
+      if (contextup)
+        semaphore.release(MAX_SOCKETS);
+      else
+        semaphore.release(INITIAL_PERMITS);
+    }
+  }
+
+  private void drainSemaphoreForContextDestroying() {
+    try {
+      semaphore.acquire();
+      drainSemaphore();
+    } catch (InterruptedException e) {
+      throw new UnknownException("Socket destroying thread interrupted by client", e);
+    }
+  }
+
+  private void drainSemaphore() {
+    int snapped = semaphore.drainPermits();
+    while (snapped - MAX_SOCKETS - INITIAL_PERMITS > 0)
+      snapped += semaphore.drainPermits();
+  }
+  
+
+  private synchronized void destroyContext() {
+    if (contextUpAndNoSockets())
+      try {
+        zmqctx.close();
+        contextup = false;
+      } catch (ZMQException | ZError.CtxTerminatedException | ZError.InstantiationException
+          | ZError.IOException e) {
+        throw new NetworkException("can't destroy networking context!", e);
+      }
+  }
+  
   private boolean contextUpAndNoSockets() {
     return socketCounter.get() == 0 && contextup;
   }
