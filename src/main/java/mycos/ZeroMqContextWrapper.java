@@ -31,8 +31,7 @@ class ZeroMqContextWrapper {
   }
 
   ZmqSock socket(final int type) {
-    final ZmqSock s = new ZmqSock(ctx.socket(type));
-    return s;
+    return new ZmqSock(ctx.socket(type));
   }
 
   void close() {

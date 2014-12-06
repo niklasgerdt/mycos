@@ -3,29 +3,29 @@ package mycos;
 import org.zeromq.ZMQ;
 
 class ZmqSock {
-  private final ZMQ.Socket zmqsock;
+  private final ZMQ.Socket zmqsocket;
 
   ZmqSock(ZMQ.Socket socket) {
-    zmqsock = socket;
+    zmqsocket = socket;
   }
 
   void connect(final String address) {
-    zmqsock.connect(address);
+    zmqsocket.connect(address);
   }
 
   void bind(final String address) {
-    zmqsock.bind(address);
+    zmqsocket.bind(address);
   }
 
   void close() {
-    zmqsock.close();
+    zmqsocket.close();
   }
 
   public String recvStr() {
-    return zmqsock.recvStr();
+    return zmqsocket.recvStr();
   }
 
   public void send(String data) {
-    zmqsock.send(data);
+    zmqsocket.send(data);
   }
 }

@@ -43,12 +43,14 @@ final class NetworkContextStateManager {
 
   ZmqSock createSocket(final SocketType type, final String address) {
     try {
-      if (contextDownAndNoSockets()) {
-        initContext();
+      synchronized (this) {
+        if (contextDownAndNoSockets()) {
+          initContext();
+        }
+        final ZmqSock socket = initSocket(type, address);
+        socketCounter.incrementAndGet();
+        return socket;
       }
-      final ZmqSock socket = initSocket(type, address);
-      socketCounter.incrementAndGet();
-      return socket;
     } catch (NetworkException e) {
       if (contextUpAndNoSockets())
         destroyContext();
@@ -68,7 +70,7 @@ final class NetworkContextStateManager {
     }
   }
 
-  synchronized private void initContext() {
+  private synchronized void initContext() {
     if (contextDownAndNoSockets())
       try {
         zmqctx.init();
@@ -79,7 +81,7 @@ final class NetworkContextStateManager {
       }
   }
 
-  synchronized private void destroyContext() {
+  private synchronized void destroyContext() {
     if (contextUpAndNoSockets())
       try {
         zmqctx.close();
