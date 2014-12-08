@@ -31,7 +31,7 @@ import org.zeromq.ZMQ;
 // NetworkContextStateManager is the core class of this application and should be tested exhaustive
 public class NetworkContextStateManagerTest {
   @Mock
-  private ZeroMqContextWrapper ctxmock;
+  private ZmqContext ctxmock;
   @Mock
   private ZmqSock sockmock;
   @InjectMocks

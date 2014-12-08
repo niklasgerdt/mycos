@@ -31,7 +31,7 @@ final class GraphBuilder {
 
   static {
     final GsonWrapper gson = new GsonWrapper(new Gson());
-    final ZeroMqContextWrapper ctxWrap = new ZeroMqContextWrapper();
+    final ZmqContext ctxWrap = new ZmqContext();
     final NetworkContextStateManager ncsm = new NetworkContextStateManager(ctxWrap);
     SOCKETFACTORY = new SocketFactory(ncsm, gson);
     // read properties files, system properties, compiler parameters...

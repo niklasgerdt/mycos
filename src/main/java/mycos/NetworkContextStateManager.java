@@ -33,11 +33,11 @@ final class NetworkContextStateManager {
   private static final int MAX_PERMITS = 1024;
   private static final int INITIAL_PERMITS = 1;
   private final Semaphore semaphore = new Semaphore(INITIAL_PERMITS);
-  private final ZeroMqContextWrapper zmqctx;
+  private final ZmqContext zmqctx;
   private final AtomicInteger socketCounter = new AtomicInteger(0);
   private boolean contextup = false;
 
-  NetworkContextStateManager(final ZeroMqContextWrapper contextWrapper) {
+  NetworkContextStateManager(final ZmqContext contextWrapper) {
     zmqctx = contextWrapper;
   }
 

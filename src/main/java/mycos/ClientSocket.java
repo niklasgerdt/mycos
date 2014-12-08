@@ -32,7 +32,7 @@ final class ClientSocket implements Client {
   private final NetworkContextStateManager contextStateManager;
   private final GsonWrapper gson;
   private final ZmqSock zmqsocket;
-  private boolean released;
+  private boolean released = false;
 
   ClientSocket(NetworkContextStateManager networkContextStateManager, ZmqSock zmqsocket,
       GsonWrapper gson) {
@@ -47,7 +47,7 @@ final class ClientSocket implements Client {
    */
   @Override
   public <C, S> Wait<S> ask(C object) {
-    Socket.validateState(this);
+    validateState();
     Future<Optional<S>> future = exec.submit(() -> sendAndReceive(object));
     return new ReplyWaiter<S>(future);
   }
@@ -57,7 +57,7 @@ final class ClientSocket implements Client {
    */
   @Override
   public <C, S> Optional<S> askAndWait(C object) {
-    Socket.validateState(this);
+    validateState();
     return sendAndReceive(object);
   }
 
@@ -66,6 +66,7 @@ final class ClientSocket implements Client {
    */
   @Override
   public void release() {
+    released = true;
     contextStateManager.destroySocket(zmqsocket);
   }
 

@@ -31,7 +31,7 @@ import org.zeromq.ZMQ;
 public class NetworkContextStateManagerConcurrencyTest {
   private static final int INVOCATIONS = 10_000;
   @Mock
-  private ZeroMqContextWrapper ctxmock;
+  private ZmqContext ctxmock;
   @Mock
   private ZmqSock sockmock;
   @InjectMocks

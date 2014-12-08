@@ -13,7 +13,7 @@ import zmq.ZError;
 import mycos.*;
 
 @SuppressWarnings("unused")
-public class SocketCreation {
+public class SocketCreationTest {
 
   public void afterTest(Socket... sockets) {
     Arrays.asList(sockets).forEach(s -> s.release());

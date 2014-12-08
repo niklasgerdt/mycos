@@ -6,7 +6,7 @@ import java.util.Optional;
 import mycos.*;
 import org.junit.Test;
 
-public class ClientServerTests {
+public class ClientServerTest {
   private static final String REQUEST = "request";
   private static final String REPLY = "reply";
 

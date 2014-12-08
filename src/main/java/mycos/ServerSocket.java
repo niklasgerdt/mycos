@@ -44,7 +44,7 @@ final class ServerSocket implements Server {
    */
   @Override
   public <V> Optional<V> hang() {
-    Socket.validateState(this);
+    validateState();
     try {
       final String reply = zmqsocket.recvStr();
       return gson.fromJson(reply);
@@ -60,7 +60,7 @@ final class ServerSocket implements Server {
    */
   @Override
   public <V> void reply(V object) {
-    Socket.validateState(this);
+    validateState();
     String json = gson.toJson(object);
     zmqsocket.send(json);
   }
@@ -70,6 +70,7 @@ final class ServerSocket implements Server {
    */
   @Override
   public void release() {
+    released = true;
     contextStateManager.destroySocket(zmqsocket);
   }
 

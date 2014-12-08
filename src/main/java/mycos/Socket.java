@@ -50,6 +50,16 @@ public interface Socket {
   /**
    * Validates the state of the socket.
    * 
+   * @throws IllegalStateException if the socket is already released
+   */
+  default void validateState() {
+    if (this.released())
+      throw new IllegalStateException("Socket is released and in invalid state!");
+  }
+
+  /**
+   * Validates the state of the socket.
+   * 
    * @param socket to validate
    * @throws IllegalStateException if the socket is already released
    */
