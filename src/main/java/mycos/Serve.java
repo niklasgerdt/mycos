@@ -20,14 +20,13 @@
  */
 package mycos;
 
+import java.util.Optional;
+
 /**
  * 
+ * @param <V>
  */
-public interface Server extends Socket {
+public interface Serve<V> {
 
-  /**
-   * 
-   */
-  <V> void onRequest(Serve<V> serveFunction);
-
+  Continue serve(Optional<V> v);
 }

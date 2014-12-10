@@ -20,14 +20,6 @@
  */
 package mycos;
 
-/**
- * 
- */
-public interface Server extends Socket {
-
-  /**
-   * 
-   */
-  <V> void onRequest(Serve<V> serveFunction);
-
+public enum Continue {
+  YES, NO;
 }

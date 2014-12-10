@@ -39,10 +39,26 @@ final class ServerSocket implements Server {
     this.zmqsocket = zmqsocket;
   }
 
+  // TODO push zmq and gson errors down to boundaries
+  @Override
+  public <V> void onRequest(Serve<V> serveFunction) {
+    Continue c = Continue.YES;
+    while (c == Continue.YES) {
+      try {
+        final String reply = zmqsocket.recvStr();
+        Optional<V> v = gson.fromJson(reply);
+        c = serveFunction.serve(v);
+      } catch (ZMQException e) {
+        throw new NetworkException("Network communication failed", e);
+      } catch (JsonParseException e) {
+        throw new ParseException("Object parsing failed", e);
+      }
+    }
+  }
+
   /**
    * {@inheritDoc}
    */
-  @Override
   public <V> Optional<V> hang() {
     validateState();
     try {
@@ -58,7 +74,6 @@ final class ServerSocket implements Server {
   /**
    * {@inheritDoc}
    */
-  @Override
   public <V> void reply(V object) {
     validateState();
     String json = gson.toJson(object);

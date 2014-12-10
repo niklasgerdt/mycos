@@ -1,9 +1,12 @@
 package mycos.systemtests;
 
 import static org.junit.Assert.assertEquals;
+
 import java.util.Arrays;
 import java.util.Optional;
+
 import mycos.*;
+
 import org.junit.Test;
 
 public class ClientServerTest {
@@ -19,8 +22,19 @@ public class ClientServerTest {
     final Client client = SocketBuilder.buildSocket().asClientOf("localhost:8000");
     final Server server = SocketBuilder.buildSocket().asServerAt("localhost:8000");
     Wait<String> waitReply = client.ask(REQUEST);
-    Optional<String> what = server.hang();
-    server.reply(REPLY);
+    Serve s = new Serve() {
+
+      @Override
+      public <V> Continue serve(Optional<V> v) {
+
+        return Continue.YES;
+      }
+    };
+    Serve serve = (v) -> {
+      Stringw vv = v;
+      return Continue.Yes;
+    };
+    server.onRequest(v -> Continue.YES);
     Optional<String> reply = waitReply.get();
     assertEquals(REQUEST, what.get());
     assertEquals(REPLY, reply.get());

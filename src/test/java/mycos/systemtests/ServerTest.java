@@ -18,16 +18,29 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package mycos;
+package mycos.systemtests;
 
-/**
- * 
- */
-public interface Server extends Socket {
+import java.util.Optional;
 
-  /**
-   * 
-   */
-  <V> void onRequest(Serve<V> serveFunction);
+import mycos.Continue;
+import mycos.Serve;
+import mycos.Server;
+import mycos.SocketBuilder;
+
+import org.junit.Test;
+
+public class ServerTest {
+
+  @Test
+  public void test() {
+    Server s = SocketBuilder.buildSocket().asServerAt("localhost:8000");
+    Serve<String> sf = new Serve<String>() {
+      @Override
+      public Continue serve(Optional<String> v) {
+        return null;
+      }
+    };
+    s.onRequest(sf);
+  }
 
 }
