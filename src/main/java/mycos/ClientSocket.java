@@ -32,7 +32,7 @@ final class ClientSocket implements Client {
   private final NetworkContextStateManager contextStateManager;
   private final GsonWrapper gson;
   private final ZmqSock zmqsocket;
-  private boolean released = false;
+  private volatile boolean released = false;
 
   ClientSocket(NetworkContextStateManager networkContextStateManager, ZmqSock zmqsocket,
       GsonWrapper gson) {

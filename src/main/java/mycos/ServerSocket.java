@@ -30,7 +30,7 @@ final class ServerSocket implements Server {
   private final NetworkContextStateManager contextStateManager;
   private final GsonWrapper gson;
   private final ZmqSock zmqsocket;
-  private boolean released = false;
+  private volatile boolean released = false;
 
   ServerSocket(NetworkContextStateManager networkContextStateManager, ZmqSock zmqsocket,
       GsonWrapper gson) {
@@ -40,44 +40,25 @@ final class ServerSocket implements Server {
   }
 
   // TODO push zmq and gson errors down to boundaries
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public <V> void onRequest(Serve<V> serveFunction) {
-    Continue c = Continue.YES;
-    while (c == Continue.YES) {
+  public <V, T> void onRequest(Serve<V, T> serveFunction, End end) {
+    while (!end.end()) {
       try {
+        validateState();
         final String reply = zmqsocket.recvStr();
         Optional<V> v = gson.fromJson(reply);
-        c = serveFunction.serve(v);
+        T t = serveFunction.serve(v);
+        String data = gson.toJson(t);
+        zmqsocket.send(data);
       } catch (ZMQException e) {
         throw new NetworkException("Network communication failed", e);
       } catch (JsonParseException e) {
         throw new ParseException("Object parsing failed", e);
       }
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public <V> Optional<V> hang() {
-    validateState();
-    try {
-      final String reply = zmqsocket.recvStr();
-      return gson.fromJson(reply);
-    } catch (ZMQException e) {
-      throw new NetworkException("Network communication failed", e);
-    } catch (JsonParseException e) {
-      throw new ParseException("Object parsing failed", e);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public <V> void reply(V object) {
-    validateState();
-    String json = gson.toJson(object);
-    zmqsocket.send(json);
   }
 
   /**
