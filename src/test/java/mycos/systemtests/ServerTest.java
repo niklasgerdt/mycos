@@ -20,27 +20,69 @@
  */
 package mycos.systemtests;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.Optional;
 
-import mycos.Continue;
-import mycos.Serve;
-import mycos.Server;
-import mycos.SocketBuilder;
+import mycos.*;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.junit.Ignore;
 
 public class ServerTest {
+	private static final String RESPOND = "RESPOND";
+	private static final String REQUEST = "REQUEST";
+	private static final Optional<String> REQ = Optional.of(REQUEST);
+	private Client client;
+	private Server server;
+	private Until neverEnd = () -> true;
+	private int testCalls;
+	private Until endAfter10Calls = () -> testCalls++ < 10;
+	private Until ones = () -> testCalls++ < 1;
 
-  @Test
-  public void test() {
-    Server s = SocketBuilder.buildSocket().asServerAt("localhost:8000");
-    Serve<String> sf = new Serve<String>() {
-      @Override
-      public Continue serve(Optional<String> v) {
-        return null;
-      }
-    };
-    s.onRequest(sf);
-  }
+	@Before
+	public void before() {
+		client = SocketBuilder.buildSocket().asClientOf("localhost:8000");
+		server = SocketBuilder.buildSocket().asServerAt("localhost:8000");
+		testCalls = 0;
+	}
 
+	@After
+	public void releaseSockets() {
+		client.release();
+		server.release();
+	}
+
+	@Test
+	public void serveFunctionTest() {
+		Serve<String, String> baseServe = (Optional<String> v) -> {
+			assertEquals(REQUEST, v.get());
+			return RESPOND;
+		};
+		assertEquals(RESPOND, baseServe.serve(REQ));
+	}
+
+	@Test
+	public void respondsImplicitly() {
+		Wait<String> w = client.ask(REQUEST);
+		Serve<String, String> serve = (Optional<String> v) -> {
+			return RESPOND;
+		};
+		server.onRequest(serve, ones);
+		String reply = w.get().get();
+		assertEquals(RESPOND, reply);
+	}
+
+	@Test
+	public void customObjects() {
+		Wait<TestObject> w = client.ask(new TestObject(REQUEST));
+		Serve<TestObject, TestObject> serve = (Optional<TestObject> v) -> {
+			assertEquals(REQUEST, v.get().getData());
+			return new TestObject(RESPOND);
+		};
+		server.onRequest(serve, ones);
+//		assertEquals(RESPOND, w.get().get().getData());
+	}
 }

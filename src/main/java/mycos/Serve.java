@@ -26,7 +26,8 @@ import java.util.Optional;
  * 
  * @param <V>
  */
-public interface Serve<V> {
+@FunctionalInterface
+public interface Serve<V, T> {
 
-  Continue serve(Optional<V> v);
+  T serve(Optional<V> v);
 }

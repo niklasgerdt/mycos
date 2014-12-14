@@ -20,14 +20,8 @@
  */
 package mycos;
 
-/**
- * 
- */
-public interface Server extends Socket {
+@FunctionalInterface
+public interface Until {
 
-	/**
-   * 
-   */
-	<V, T> void onRequest(Serve<V, T> serve, Until until);
-
+  boolean end();
 }

@@ -44,12 +44,12 @@ final class ServerSocket implements Server {
    * {@inheritDoc}
    */
   @Override
-  public <V, T> void onRequest(Serve<V, T> serveFunction, End end) {
-    while (!end.end()) {
+  public <V, T> void onRequest(Serve<V, T> serveFunction, Until end) {
+    while (end.end()) {
       try {
         validateState();
-        final String reply = zmqsocket.recvStr();
-        Optional<V> v = gson.fromJson(reply);
+        final String req = zmqsocket.recvStr();
+        Optional<V> v = gson.fromJson(req);
         T t = serveFunction.serve(v);
         String data = gson.toJson(t);
         zmqsocket.send(data);
