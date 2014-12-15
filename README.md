@@ -15,24 +15,31 @@ Creating server is equally simple:
         SocketBuilder
         .buildSocket()
         .asServerAt("localhost:8000");
-Client can send requests to server and receives Wait, that is sort of limited Java Future. This allows the client keep on working while server processes request. Client can use method askAndWait that blocks until reply is received, if synchronous communication is preferred.
+Client can send requests to server and receives Wait, that is sort of limited Java Future. This allows the client keep on working while server processes request. The second parameter (String.class) implies what kind of result is expected from the server. Client can use method askAndWait that blocks until reply is received, if synchronous communication is preferred.
 
-        Wait<String> waitReply = client.ask("REQUEST");
-Server hangs and waits for requests. When the reply is ready it should be sent back to the client with a method reply. Following demonstrates the procedure:
+        Wait<String> waitReply = client.ask("REQUEST", String.class);
 
-        Optional<String> what = server.hang();
-        server.reply("reply");
+For server you implement the serving function. It takes the request as input parameter. You need to also spesify the end-function. This function returns simple boolean, where true indicates continue and false indicates that serving should be ended.
+
+        server.onRequest(TestObject.class, 
+                (Optional<TestObject> v) ->
+                {
+                        assertEquals(REQUEST, v.get().getData());
+                        return new TestObject(RESPOND);
+                }, 
+                () -> true);
+
 Client can read the reply from the previously created Wait-object:
 
         Optional<String> reply = waitReply.get();
 There is nothing special about Strings. The object on the wire can be any POJO. For example
 
-        Wait<String> waitReply = client.ask(new Person(name, age));
+        Wait<String> waitReply = client.ask(new Person(name, age), Person.class);
 Works just like the example with strings. The object on the wire can not contain generic fields though!
 
 More examples can be found from the test libraries src/test/java/mycos/systemtests/
 ####use cases
-User choice actually. Mycos could be useful, if you need fast and easy setup. For example when building web services in trusted network you may end up having web server(1), object to xml/json parser (2), web service client (3) and web service controller (4).  You could setup similar environment with just mycos. On the other hand, when your application grows you might prefer more complex and versatile setup.
+Mycos could be useful, if you need fast and easy setup. For example when building web services in trusted network you may end up having web server(1), object to xml/json parser (2), web service client (3) and web service controller (4).  You could setup similar environment with just mycos. On the other hand, when your application grows you might prefer more complex and versatile setup.
 ####software engineering
 Mycos is written in Java 8. The preferred build and dependency tool is Maven 3. Formatter for eclipse, preferred sonarqube rules are provided in the root folder of the project.
 ####limitations
