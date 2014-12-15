@@ -4,29 +4,29 @@ import org.zeromq.ZMQ;
 
 // Not final because of Mockito and unit tests
 class ZmqSock {
-  private final ZMQ.Socket zmqsocket;
+    private final ZMQ.Socket zmqsocket;
 
-  ZmqSock(ZMQ.Socket socket) {
-    zmqsocket = socket;
-  }
+    ZmqSock(ZMQ.Socket socket) {
+        zmqsocket = socket;
+    }
 
-  void connect(final String address) {
-    zmqsocket.connect(address);
-  }
+    void connect(final String address) {
+        zmqsocket.connect(address);
+    }
 
-  void bind(final String address) {
-    zmqsocket.bind(address);
-  }
+    void bind(final String address) {
+        zmqsocket.bind(address);
+    }
 
-  void close() {
-    zmqsocket.close();
-  }
+    void close() {
+        zmqsocket.close();
+    }
 
-  String recvStr() {
-    return zmqsocket.recvStr();
-  }
+    String recvStr() {
+        return zmqsocket.recvStr();
+    }
 
-  void send(String data) {
-    zmqsocket.send(data);
-  }
+    void send(String data) {
+        zmqsocket.send(data);
+    }
 }

@@ -11,6 +11,8 @@
         <configuration>
           <source>${maven.compiler.source}</source>
           <target>${maven.compiler.target}</target>
+          <meminitial>2048m</meminitial>
+          <maxmem>2048m</maxmem>
         </configuration>
       </plugin>
       <plugin>
